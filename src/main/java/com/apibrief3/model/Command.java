@@ -25,7 +25,7 @@ public class Command {
     @ManyToOne
     private User user;
 
-    @OneToOne
+    @OneToOne(mappedBy = "command")
     private CommandDetails commandDetails;
 
 }

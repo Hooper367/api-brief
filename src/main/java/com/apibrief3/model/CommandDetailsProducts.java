@@ -22,5 +22,9 @@ public class CommandDetailsProducts {
     @OneToOne
     private Product product;
 
-    private Float price;
+    private Integer quantity;
+
+    private Float unitPrice;
+
+    private Float totalPrice;
 }

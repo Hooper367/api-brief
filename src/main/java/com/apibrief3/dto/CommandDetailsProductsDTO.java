@@ -5,6 +5,10 @@ public record CommandDetailsProductsDTO(
 
         ProductDTO product,
 
-        Float price
+        Integer quantity,
+
+        Float unitPrice,
+
+        Float totalPrice
 ) {
 }

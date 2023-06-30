@@ -9,6 +9,7 @@ import com.apibrief3.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,11 +52,14 @@ public record CommandService(
         Adress deliveryAdress = adressRpository.findById(request.deliveryAdressId())
                 .orElseThrow(() -> new EntityNotFoundException(Adress.class, "ID", request.deliveryAdressId().toString()));
 
+        List<CommandDetailsProducts> products = new ArrayList<>();
+
         Command command = Command.builder()
                 .dateCommand(LocalDateTime.now())
                 .commandDetails(null)
                 .user(user)
                 .build();
+
         command = commandRepository.save(command);
 
         CommandDetails commandDetails = CommandDetails.builder()
@@ -68,22 +72,30 @@ public record CommandService(
 
         commandDetails = commandDetailsRepository.save(commandDetails);
 
-        for (Integer productId :request.productsIds()) {
-            Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new EntityNotFoundException(Product.class, "ID", productId.toString()));
+        for (CommandRow commandRow : request.commandItems()) {
+            Product product = productRepository.findById(commandRow.getProductId())
+                    .orElseThrow(() -> new EntityNotFoundException(Product.class, "ID", commandRow.getProductId().toString()));
 
             CommandDetailsProducts commandDetailsProducts = CommandDetailsProducts.builder()
                     .commandDetails(commandDetails)
                     .product(product)
-                    .price(product.getPrice())
+                    .quantity(commandRow.getQuantity())
+                    .unitPrice(product.getPromotion() != null && product.getPromotion().getDiscountPercentage() > 0 ? (product.getPrice() - (product.getPrice() * (product.getPromotion().getDiscountPercentage() / 100))) : product.getPrice())
+                    .totalPrice(Float.parseFloat("0"))
                     .build();
 
+            commandDetailsProducts.setTotalPrice(commandDetailsProducts.getUnitPrice() * commandDetailsProducts.getQuantity());
+
             commandDetailsProducts = commandDetailsProductsRepository.save(commandDetailsProducts);
-            commandDetails.setTotalPrice(commandDetails.getTotalPrice() + commandDetailsProducts.getPrice());
-            commandDetails = commandDetailsRepository.save(commandDetails);
+            products.add(commandDetailsProducts);
+            commandDetails.setTotalPrice(commandDetails.getTotalPrice() + commandDetailsProducts.getTotalPrice());
         }
+
+        commandDetails.setProducts(products);
+        command.setCommandDetails(commandDetailsRepository.save(commandDetails));
+
+
         return eventMapper.toCommandDTO(commandRepository.save(command));
     }
-
 
 }

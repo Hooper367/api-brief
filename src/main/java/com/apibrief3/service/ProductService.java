@@ -4,9 +4,11 @@ import com.apibrief3.DTOMapper.Mapper;
 
 import com.apibrief3.dto.AvisDTO;
 import com.apibrief3.dto.ProductDTO;
+import com.apibrief3.dto.PromotionDTO;
 import com.apibrief3.exception.EntityNotFoundException;
 import com.apibrief3.model.*;
 import com.apibrief3.record.productRequest.AddAvisRequest;
+import com.apibrief3.record.productRequest.AddDiscountToProduct;
 import com.apibrief3.record.productRequest.AddProductRequest;
 import com.apibrief3.record.productRequest.UpdateProductRequest;
 import com.apibrief3.repository.*;
@@ -26,6 +28,8 @@ public record ProductService(
         AvisRepository avisRepository,
         ColorRepository colorRepository,
         SizeRepository sizeRepository,
+
+        PromotionRepository promotionRepository,
 
         StockRepository stockRepository
 ) {
@@ -124,6 +128,18 @@ public record ProductService(
 
         return eventMapper.toAvisDTO(avisRepository.save(avis));
 
+    }
+
+    public PromotionDTO addDiscountToProduct(AddDiscountToProduct request, Integer productId){
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException(Product.class, "ID", productId.toString()));
+
+        Promotion promotion = Promotion.builder()
+                .discountPercentage(request.discountPercentage())
+                .build();
+
+        return eventMapper.toPromotionDTO(promotionRepository.save(promotion));
     }
 
 }

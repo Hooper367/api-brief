@@ -13,6 +13,8 @@ public record ProductDTO(
 
         Float price,
 
+        PromotionDTO promotion,
+
         CategoryDTO category
 ) {
 }

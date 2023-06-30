@@ -3,6 +3,7 @@ package com.apibrief3.controller;
 
 import com.apibrief3.dto.AvisDTO;
 import com.apibrief3.dto.ProductDTO;
+import com.apibrief3.dto.PromotionDTO;
 import com.apibrief3.exception.ValidationException;
 import com.apibrief3.record.productRequest.AddAvisRequest;
 import com.apibrief3.record.productRequest.AddProductRequest;

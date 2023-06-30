@@ -62,57 +62,11 @@ public class Mapper {
         );
     }
 
-//    public CategoryDTO toCategoryDTO(Category category) {
-//        return new CategoryDTO(
-//                category.getId(),
-//                category.getName(),
-//                category.getProducts() != null ? category.getProducts()
-//                        .stream()
-//                        .filter(product -> !product.getId().equals(category.getId()))
-//                        .map((product -> toProductDTO(product, category.getId())))
-//                        .collect(Collectors.toList())
-//                        : null
-//
-//        );
-//    }
-//
-//    public CategoryDTO toCategoryDTO(Category category, Product product) {
-//        return new CategoryDTO(
-//                category.getId(),
-//                category.getName(),
-//                category.getProducts()
-//                        .stream()
-//                        .filter(element -> !element.getId().equals(product.getId()))
-//                        .map((element -> toProductDTO(element, category.getId())))
-//                        .collect(Collectors.toList())
-//
-//        );
-//    }
-//
-//    public ProductDTO toProductDTO(Product product) {
-//        return new ProductDTO(
-//                product.getId(),
-//                product.getName(),
-//                product.getDescription(),
-//                product.getPrice(),
-//                toCategoryDTO(product.getCategory(), product)
-//
-//        ) ;
-//    }
-//
-//    public ProductDTO toProductDTO(Product product, Integer categoryId) {
-//        return new ProductDTO(
-//                product.getId(),
-//                product.getName(),
-//                product.getDescription(),
-//                product.getPrice(),
-//                !product.getCategory().getId().equals(categoryId) ? toCategoryDTO(product.getCategory()) : null
-//        );
-//    }
     public CategoryDTO toCategoryDTO(Category category) {
         return new CategoryDTO(
                 category.getId(),
                 category.getName(),
+                category.getPromotion() != null ? toPromotionDTO(category.getPromotion()) : null,
                 category.getProducts() != null ? category.getProducts()
                         .stream()
                         .map((product -> toProductDTO(product, category.getId())))
@@ -126,6 +80,7 @@ public class Mapper {
         return new CategoryDTO(
                 category.getId(),
                 category.getName(),
+                category.getPromotion() != null ? toPromotionDTO(category.getPromotion()) : null,
                 category.getProducts()
                         .stream()
                         .filter(element -> !element.getId().equals(product.getId()))
@@ -143,6 +98,7 @@ public class Mapper {
                 toColorDTO(product.getColor()),
                 toSizeDTO(product.getSize()),
                 product.getPrice(),
+                product.getPromotion() != null ? toPromotionDTO(product.getPromotion()) : null,
                 toCategoryDTO(product.getCategory(), product)
 
         ) ;
@@ -155,6 +111,7 @@ public class Mapper {
                 toColorDTO(product.getColor()),
                 toSizeDTO(product.getSize()),
                 product.getPrice(),
+                product.getPromotion() != null ? toPromotionDTO(product.getPromotion()) : null,
                 !product.getCategory().getId().equals(categoryId) ? toCategoryDTO(product.getCategory()) : null
         );
     }
@@ -165,7 +122,7 @@ public class Mapper {
                 command.getId(),
                 command.getDateCommand(),
                 toUserDTO(command.getUser()),
-               toCommandDetailsDTO(command.getCommandDetails())
+                toCommandDetailsDTO(command.getCommandDetails())
         );
     }
 
@@ -186,8 +143,10 @@ public class Mapper {
         return  new CommandDetailsProductsDTO(
                 commandDetailsProducts.getId(),
                 toProductDTO(commandDetailsProducts.getProduct()),
-                commandDetailsProducts.getPrice()
-        );
+                commandDetailsProducts.getQuantity(),
+                commandDetailsProducts.getUnitPrice(),
+                commandDetailsProducts.getTotalPrice()
+                );
     }
 
     public AvisDTO toAvisDTO(Avis avis) {
@@ -220,7 +179,12 @@ public class Mapper {
                 toProductDTO(stock.getProduct())
         );
     }
-
+    public PromotionDTO toPromotionDTO(Promotion promotion) {
+        return new PromotionDTO(
+                promotion.getId(),
+                promotion.getDiscountPercentage()
+        );
+    }
 
 
 

@@ -31,6 +31,9 @@ public class Product {
 
     private Float price;
 
+    @OneToOne
+    private Promotion promotion;
+
     @ManyToOne
     private Category category;
 

@@ -3,13 +3,21 @@ package com.apibrief3.service;
 
 import com.apibrief3.DTOMapper.Mapper;
 import com.apibrief3.config.JwtService;
+import com.apibrief3.dto.AdressDTO;
+import com.apibrief3.dto.AvisDTO;
 import com.apibrief3.dto.UserDTO;
 import com.apibrief3.exception.EntityAlreadyExistsException;
 import com.apibrief3.exception.EntityNotFoundException;
 
+import com.apibrief3.model.Adress;
+import com.apibrief3.model.Avis;
+import com.apibrief3.model.Product;
 import com.apibrief3.model.User;
+import com.apibrief3.record.productRequest.AddAvisRequest;
+import com.apibrief3.record.userRequest.AddAddresstoUserRequest;
 import com.apibrief3.record.userRequest.UpdateUserRequest;
 import com.apibrief3.record.userRequest.UpdateUserResponse;
+import com.apibrief3.repository.AdressRpository;
 import com.apibrief3.repository.UserRepository;
 import com.apibrief3.utils.PropertyChecker;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,7 +34,8 @@ public record UserService(
         Mapper eventMapper,
         PasswordEncoder passwordEncoder,
         JwtService jwtService,
-        PropertyChecker propertyChecker
+        PropertyChecker propertyChecker,
+        AdressRpository adressRpository
 ) {
 
     public List<UserDTO> getAllUsers() {
@@ -64,10 +73,6 @@ public record UserService(
             if (!propertyChecker.isPropertiesSame(request.lastName(), user.getLastName())) {
                 user.setLastName(request.lastName());
             }
-
-//            if (!propertyChecker.isPropertiesSame(request.state(), user.getState())) {
-//                user.setState(request.state());
-//            }
 
         } else {
             throw new AccessDeniedException("Insufficient permission");
@@ -125,4 +130,20 @@ public record UserService(
         return true;
     }
 
+    public AdressDTO addAdressToUser(AddAddresstoUserRequest request, Integer userId){
+       User user = userRepository.findById(userId)
+               .orElseThrow(() -> new EntityNotFoundException(User.class, "ID", userId.toString()));
+
+        Adress adress = Adress.builder()
+                .country(request.country())
+                .city(request.city())
+                .zipCode(request.zipCode())
+                .street(request.street())
+                .number(request.number())
+                .owner(user)
+
+                .build();
+        return eventMapper.toAdressDTO(adressRpository.save(adress));
+
+    }
 }
