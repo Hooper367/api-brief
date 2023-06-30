@@ -19,7 +19,7 @@ public class CommandDetailsProducts {
     @ManyToOne
     private CommandDetails commandDetails;
 
-    @OneToOne
+    @ManyToOne
     private Product product;
 
     private Integer quantity;

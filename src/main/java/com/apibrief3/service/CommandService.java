@@ -52,50 +52,60 @@ public record CommandService(
         Adress deliveryAdress = adressRpository.findById(request.deliveryAdressId())
                 .orElseThrow(() -> new EntityNotFoundException(Adress.class, "ID", request.deliveryAdressId().toString()));
 
-        List<CommandDetailsProducts> products = new ArrayList<>();
+        List<CommandDetailsProducts> listItems = new ArrayList<>();
 
         Command command = Command.builder()
                 .dateCommand(LocalDateTime.now())
-                .commandDetails(null)
                 .user(user)
+                .commandDetails(null)
                 .build();
 
         command = commandRepository.save(command);
-
-        CommandDetails commandDetails = CommandDetails.builder()
-                .command(command)
-                .billingAdress(billingAdress)
-                .deliveryAdress(deliveryAdress)
-                .totalPrice(Float.parseFloat("0"))
-                .products(null)
-                .build();
-
-        commandDetails = commandDetailsRepository.save(commandDetails);
+        CommandDetails commandDetails = generateDetails(command, billingAdress, deliveryAdress);
+        command.setCommandDetails(commandDetails);
+        command = commandRepository.save(command);
 
         for (CommandRow commandRow : request.commandItems()) {
-            Product product = productRepository.findById(commandRow.getProductId())
-                    .orElseThrow(() -> new EntityNotFoundException(Product.class, "ID", commandRow.getProductId().toString()));
-
-            CommandDetailsProducts commandDetailsProducts = CommandDetailsProducts.builder()
-                    .commandDetails(commandDetails)
-                    .product(product)
-                    .quantity(commandRow.getQuantity())
-                    .unitPrice(product.getPromotion() != null && product.getPromotion().getDiscountPercentage() > 0 ? (product.getPrice() - (product.getPrice() * (product.getPromotion().getDiscountPercentage() / 100))) : product.getPrice())
-                    .totalPrice(Float.parseFloat("0"))
-                    .build();
-
-            commandDetailsProducts.setTotalPrice(commandDetailsProducts.getUnitPrice() * commandDetailsProducts.getQuantity());
-
-            commandDetailsProducts = commandDetailsProductsRepository.save(commandDetailsProducts);
-            products.add(commandDetailsProducts);
+            CommandDetailsProducts commandDetailsProducts = generateCommandDetailsProducts(commandRow, commandDetails);
             commandDetails.setTotalPrice(commandDetails.getTotalPrice() + commandDetailsProducts.getTotalPrice());
         }
 
-        commandDetails.setProducts(products);
-        command.setCommandDetails(commandDetailsRepository.save(commandDetails));
-
+        commandDetails.setProducts(listItems);
+        commandDetailsRepository.save(commandDetails);
 
         return eventMapper.toCommandDTO(commandRepository.save(command));
     }
 
+    public CommandDetails generateDetails(Command command, Adress billingAdress, Adress deliveryAdress){
+        return commandDetailsRepository.save(CommandDetails.builder()
+                .command(command)
+                .billingAdress(billingAdress)
+                .deliveryAdress(deliveryAdress)
+                .totalPrice((float) 0)
+                .products(null)
+                .build());
+    }
+
+    public CommandDetailsProducts generateCommandDetailsProducts(CommandRow commandRow, CommandDetails commandDetails){
+        Product product = productRepository.findById(commandRow.getProductId())
+                .orElseThrow(() -> new EntityNotFoundException(Product.class, "ID", commandRow.getProductId().toString()));
+
+        Float price = product.getPrice();
+        if (product.getPromotion() != null) {
+            float percentage = product.getPromotion().getDiscountPercentage().floatValue() / 100;
+            price -= price * percentage;
+        }
+
+        CommandDetailsProducts commandDetailsProducts = CommandDetailsProducts.builder()
+                .commandDetails(commandDetails)
+                .product(product)
+                .quantity(commandRow.getQuantity())
+                .unitPrice(price)
+                .totalPrice((float) 0)
+                .build();
+
+        commandDetailsProducts.setTotalPrice(commandDetailsProducts.getUnitPrice() * commandDetailsProducts.getQuantity());
+
+        return commandDetailsProductsRepository.save(commandDetailsProducts);
+    }
 }

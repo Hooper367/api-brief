@@ -23,10 +23,10 @@ public class Product {
 
     private String description;
 
-    @OneToOne
+    @ManyToOne
     private Color color;
 
-    @OneToOne
+    @ManyToOne
     private Size size;
 
     private Float price;

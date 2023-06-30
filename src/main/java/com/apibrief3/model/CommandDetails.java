@@ -22,10 +22,10 @@ public class CommandDetails {
     @OneToOne
     private Command command;
 
-    @OneToOne
+    @ManyToOne
     private Adress billingAdress;
 
-    @OneToOne
+    @ManyToOne
     private Adress deliveryAdress;
 
 
